@@ -1,12 +1,12 @@
 <?php
 require_once '../includes/db_connect.php';
 
-class TagihanKamar {
+class TagihanDenda {
     private $conn;
-    private $table_name = "Tagihan_Kamar";
+    private $table_name = "Tagihan_Denda";
 
     public $id;
-    public $detail_kamar;
+    public $id_denda_pelanggaran;
     public $bulan;
     public $tanggal_maksimal_bayar;
     public $harga_tagihan;
@@ -18,10 +18,10 @@ class TagihanKamar {
     }
 
     public function create() {
-        $query = "INSERT INTO " . $this->table_name . " (detail_kamar, bulan, tanggal_maksimal_bayar, harga_tagihan, denda_keterlambatan, tanggal_bayar) VALUES (:detail_kamar, :bulan, :tanggal_maksimal_bayar, :harga_tagihan, :denda_keterlambatan, :tanggal_bayar)";
+        $query = "INSERT INTO " . $this->table_name . " (id_denda_pelanggaran, bulan, tanggal_maksimal_bayar, harga_tagihan, denda_keterlambatan, tanggal_bayar) VALUES (:id_denda_pelanggaran, :bulan, :tanggal_maksimal_bayar, :harga_tagihan, :denda_keterlambatan, :tanggal_bayar)";
         $stmt = $this->conn->prepare($query);
 
-        $stmt->bindParam(":detail_kamar", $this->detail_kamar);
+        $stmt->bindParam(":id_denda_pelanggaran", $this->id_denda_pelanggaran);
         $stmt->bindParam(":bulan", $this->bulan);
         $stmt->bindParam(":tanggal_maksimal_bayar", $this->tanggal_maksimal_bayar);
         $stmt->bindParam(":harga_tagihan", $this->harga_tagihan);
@@ -43,11 +43,11 @@ class TagihanKamar {
     }
 
     public function update() {
-        $query = "UPDATE " . $this->table_name . " SET detail_kamar = :detail_kamar, bulan = :bulan, tanggal_maksimal_bayar = :tanggal_maksimal_bayar, harga_tagihan = :harga_tagihan, denda_keterlambatan = :denda_keterlambatan, tanggal_bayar = :tanggal_bayar WHERE id = :id";
+        $query = "UPDATE " . $this->table_name . " SET id_denda_pelanggaran = :id_denda_pelanggaran, bulan = :bulan, tanggal_maksimal_bayar = :tanggal_maksimal_bayar, harga_tagihan = :harga_tagihan, denda_keterlambatan = :denda_keterlambatan, tanggal_bayar = :tanggal_bayar WHERE id = :id";
         $stmt = $this->conn->prepare($query);
 
         $stmt->bindParam(":id", $this->id);
-        $stmt->bindParam(":detail_kamar", $this->detail_kamar);
+        $stmt->bindParam(":id_denda_pelanggaran", $this->id_denda_pelanggaran);
         $stmt->bindParam(":bulan", $this->bulan);
         $stmt->bindParam(":tanggal_maksimal_bayar", $this->tanggal_maksimal_bayar);
         $stmt->bindParam(":harga_tagihan", $this->harga_tagihan);

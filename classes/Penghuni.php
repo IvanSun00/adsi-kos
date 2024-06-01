@@ -1,7 +1,5 @@
 <?php
-namespace classes;
-require_once './includes/db_connect.php';
-
+require_once '../includes/db_connect.php';
 
 class Penghuni {
     private $conn;
