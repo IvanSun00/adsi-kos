@@ -13,8 +13,6 @@ class Penghuni {
     public $no_telpon;
     public $kontak_wali;
     public $status;
-    public $email;
-    private $password;
 
     public function __construct($db) {
         $this->conn = $db;
