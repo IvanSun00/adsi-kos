@@ -13,6 +13,16 @@ class TagihanKamar {
     public $denda_keterlambatan;
     public $tanggal_bayar;
 
+    public $fillable = [
+        'id',
+        'detail_kamar',
+        'bulan',
+        'tanggal_maksimal_bayar',
+        'harga_tagihan',
+        'denda_keterlambatan',
+        'tanggal_bayar'
+    ];
+    
     public function __construct($db) {
         $this->conn = $db;
     }
@@ -60,6 +70,31 @@ class TagihanKamar {
         return false;
     }
 
+    public function updatePartial(){
+        $query = "UPDATE " . $this->table_name . " SET ";
+        $set = "";
+        foreach($this->fillable as $key){
+            if($this->{$key} != null){
+                $set .= $key . " = :" . $key . ", ";
+            }
+        }
+        $set = rtrim($set, ", "); //hapus coma di akhir
+        $query .= $set . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(":id", $this->id);
+        foreach($this->fillable as $key){
+            if($this->{$key} != null){
+                $stmt->bindParam(":" . $key, $this->{$key});
+            }
+        }
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
     public function delete() {
         $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);
@@ -71,5 +106,8 @@ class TagihanKamar {
         }
         return false;
     }
+
+    
+
 }
 ?>
