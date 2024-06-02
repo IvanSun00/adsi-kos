@@ -1,5 +1,8 @@
 <?php
 require_once '../includes/db_connect.php';
+require_once 'TagihanKamar.php';
+
+
 
 class DetailKamar {
     private $conn;
@@ -31,6 +34,10 @@ class DetailKamar {
         $stmt->bindParam(":total_harga", $this->total_harga);
     
         if ($stmt->execute()) {
+            $tagihanKamar = new TagihanKamar($this->conn);
+            $this->id = $this->conn->lastInsertId();
+            $detailKamar =  $tagihanKamar->createTagihanKamarSelamaKos($this);
+
             return true;
         }
         return false;

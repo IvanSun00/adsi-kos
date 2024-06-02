@@ -163,22 +163,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php } ?>
     </div>
 
-    <script>
-        $('#submit').click(function(e) {
-        e.preventDefault();
-            $.ajax({
-
-            url: 'listTagihan.php', // The PHP script that will handle the cURL request
-            type: 'POST',
-            data: { action: 'perform_curl' }, // Data to send to the PHP script
-            success: function(response) {
-                $('#response').html(response); // Display the response in the div with id="response"
-            },
-            error: function(xhr, status, error) {
-                $('#response').html('Error: ' + error); // Display the error message
-            }
-        });
-    });
-    </script>
 </body>
 </html>

@@ -6,49 +6,6 @@ require_once '../classes/TagihanKamar.php';
 $database = new Database();
 $db = $database->dbConnection();
 
-if(isset($_POST['Request'])){
-    $tagihanKamar = new TagihanKamar($db);
-    // header('Content-Type: application/json');
-    $request = $_POST['Request'];
-
-    switch($request){
-        /**
-         * Generate tagihan
-         * @param id_detail_kamar, bulan, harga_per_bulan
-         */
-        case 'generateTagihan':
-            if(empty($_POST['detail_kamar']) || empty($_POST['bulan']) || empty($_POST['harga_per_bulan'])){
-                echo json_encode([
-                    'success' => false,
-                    'msg' => 'Semua field harus diisi'
-                ]);
-                return;
-            }
-            $bulan = $_POST['bulan'];
-            $date  = date('Y-m-d', strtotime('+7 days'));
-            for($b = 1; $b <= $bulan; $b++){
-                $iniTagihanKamar = new TagihanKamar($db);
-                $iniTagihanKamar->detail_kamar = $_POST['detail_kamar'];
-                $iniTagihanKamar->bulan = $b;
-                $iniTagihanKamar->tanggal_maksimal_bayar = $date;
-                $iniTagihanKamar->harga_tagihan = $_POST['harga_per_bulan'];
-                $iniTagihanKamar->denda_keterlambatan = 0;
-                $iniTagihanKamar->tanggal_bayar = null;
-                $iniTagihanKamar->create();
-                $date = date('Y-m-d', strtotime('+1 month', strtotime($date)));
-
-            }
-            echo json_encode([
-                'success' => true,
-                'msg' => 'Tagihan berhasil dibuat'
-            ]);
-
-            break;
-        default:
-            break;
-    };
-    return;
-}
 
 $tagihanKamar2 = new TagihanKamar($db);
 $stmt = $tagihanKamar2->read();

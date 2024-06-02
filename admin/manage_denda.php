@@ -125,6 +125,7 @@
         return;
     }
 ?>
+
 <?php
     $penghuni = new Penghuni($db);
     $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);

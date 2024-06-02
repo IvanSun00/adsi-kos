@@ -1,7 +1,7 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "sistem_kos";
+    private $db_name = "adsi_project";
     private $username = "root";
     private $password = "";
     public $conn;

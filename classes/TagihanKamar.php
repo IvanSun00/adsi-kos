@@ -1,7 +1,8 @@
 <?php
 require_once '../includes/db_connect.php';
+require_once 'Tagihan.php';
 
-class TagihanKamar {
+class TagihanKamar extends Tagihan {
     private $conn;
     private $table_name = "Tagihan_Kamar";
 
@@ -134,7 +135,25 @@ class TagihanKamar {
         return false;
     }
 
-    
+    /**
+         * Generate tagihan
+        * @param id_detail_kamar, bulan, harga_per_bulan
+    */
+    public function createTagihanKamarSelamaKos(DetailKamar $detailKamar) {
 
+        $bulan = $detailKamar->durasi_kamar;
+        $date  = date('Y-m-d', strtotime('+7 days', strtotime($detailKamar->tanggal_mulai_sewa)));
+        for($b = 1; $b <= $bulan; $b++){
+            $this->detail_kamar = $detailKamar->id;
+            $this->bulan = $b;
+            $this->tanggal_maksimal_bayar = $date;
+            $this->harga_tagihan = $detailKamar->total_harga / $bulan;
+            $this->denda_keterlambatan = 0;
+            $this->tanggal_bayar = null;
+            $this->create();
+            $date = date('Y-m-d', strtotime('+1 month', strtotime($date)));
+
+        }
+    }
 }
 ?>
