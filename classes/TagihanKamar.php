@@ -107,6 +107,33 @@ class TagihanKamar {
         return false;
     }
 
+    public function getDetailPayment(){
+
+        $query = "SELECT * FROM " . $this->table_name . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        
+        $stmt->bindParam(":id", $this->id);
+        $stmt->execute();
+        
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if($row) {
+            $currentDate = new DateTime();
+            $dueDate = new DateTime($row['tanggal_maksimal_bayar']);
+            
+            if($currentDate > $dueDate) {
+                $daysLate = $dueDate->diff($currentDate)->days;
+                $row['denda_keterlambatan'] = $daysLate * 50000; // Rp 50.000 per hari terlambat
+            } else {
+                $row['denda_keterlambatan'] = 0;
+            }
+
+            return $row;
+        }
+
+        return false;
+    }
+
     
 
 }

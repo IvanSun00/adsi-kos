@@ -1,16 +1,135 @@
 <?php
-require_once '../classes/Penghuni.php';
-require_once '../includes/db_connect.php';
+    session_start();
+    require_once '../includes/db_connect.php';
+    require_once '../classes/DendaPelanggaran.php';
+    require_once '../classes/Penghuni.php';
 
-$database = new Database();
-$db = $database->dbConnection();
+    $database = new Database();
+    $db = $database->dbConnection();
 
-$penghuni = new Penghuni($db);
-$listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
+    if(isset($_POST['Request'])){
+        $denda = new DendaPelanggaran($db);
+        $request = $_POST['Request'];
 
-
-
+        
+        switch($request){
+            case 'add':
+                if(empty($_POST['total_denda']) || empty($_POST['keterangan']) || empty($_POST['id_penghuni'])){
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "Data tidak boleh kosong"
+                    ]);
+                    return;
+                }
+                if(!is_numeric($_POST['total_denda'])){
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "Total denda harus berupa angka"
+                    ]);
+                    return;
+                }
+                $denda->total_denda = $_POST['total_denda'];
+                $denda->keterangan = $_POST['keterangan'];
+                $denda->id_admin = $_SESSION['id'] ;
+                $denda->id_penghuni = $_POST['id_penghuni'];
+                if($denda->create()){
+                    echo json_encode([
+                        "success" => true,
+                        "msg" => "Denda berhasil ditambahkan"
+                    
+                    ]);
+                } else {
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "Denda gagal ditambahkan"
+                    ]);
+                }
+                break;
+            case 'read':
+                $data = $denda->readWithAdminPenghuni()->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([
+                    "success" => true,
+                    "data" => $data
+                ]);
+                break;
+            case 'getById':
+                if(empty($_POST['id'])){
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "ID tidak boleh kosong"
+                    ]);
+                    return;
+                }
+                $data = $denda->getById($_POST['id'])->fetch(PDO::FETCH_ASSOC);
+                echo json_encode([
+                    "success" => true,
+                    "data" => $data
+                ]);
+                break;
+            case 'update':
+                if(empty($_POST['id']) || empty($_POST['total_denda']) || empty($_POST['keterangan'])){
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "Data tidak boleh kosong"
+                    ]);
+                    return;
+                }
+                if(!is_numeric($_POST['total_denda'])){
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "Total denda harus berupa angka"
+                    ]);
+                    return;
+                }
+                $denda->id = $_POST['id'];
+                $denda->total_denda = $_POST['total_denda'];
+                $denda->keterangan = $_POST['keterangan'];
+                $denda->id_admin = $_SESSION['id'] ;
+                $denda->id_penghuni = $_POST['id_penghuni'];
+                if($denda->update()){
+                    echo json_encode([
+                        "success" => true,
+                        "msg" => "Denda berhasil diupdate"
+                    ]);
+                } else {
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "Denda gagal diupdate"
+                    ]);
+                }
+                break;
+            case 'delete':
+                if(empty($_POST['id'])){
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "ID tidak boleh kosong"
+                    ]);
+                    return;
+                }
+                $denda->id = $_POST['id'];
+                if($denda->delete()){
+                    echo json_encode([
+                        "success" => true,
+                        "msg" => "Denda berhasil dihapus"
+                    ]);
+                } else {
+                    echo json_encode([
+                        "success" => false,
+                        "msg" => "Denda gagal dihapus"
+                    ]);
+                }
+                break;
+            default:
+                break;
+        };
+        return;
+    }
 ?>
+<?php
+    $penghuni = new Penghuni($db);
+    $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,8 +265,10 @@ $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
 
                 $.ajax({
                     type: 'POST',
-                    url: '../Service/DendaService.php?Request=add',
+                    url: 'manage_denda.php',
+                    dataType: 'json',
                     data: {
+                        Request: 'add',
                         id_penghuni: id_penghuni,
                         total_denda: total_denda,
                         keterangan: keterangan
@@ -185,8 +306,12 @@ $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
             function getAllData(){
                  // get all denda
                 $.ajax({
-                    type: 'GET',
-                    url: '../Service/DendaService.php?Request=read',
+                    type: 'POST',
+                    url: 'manage_denda.php',
+                    dataType: 'json',
+                    data: {
+                        Request: 'read'
+                    },
                     success: function(response) {
                         if(response.success){
                             let i = 1;
@@ -218,8 +343,10 @@ $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
             function getById(id){
                 $.ajax({
                     type: 'POST',
-                    url: '../Service/DendaService.php?Request=getById',
+                    url: 'manage_denda.php',
+                    dataType: 'json',
                     data: {
+                        Request: 'getById',
                         id: id
                     },
                     success: function(response) {
@@ -280,8 +407,10 @@ $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
                     if (result.isConfirmed) {
                         $.ajax({
                             type: 'POST',
-                            url: '../Service/DendaService.php?Request=delete',
+                            url: 'manage_denda.php',
+                            dataType: 'json',
                             data: {
+                                Request: 'delete',
                                 id: id
                             },
                             success: function(response) {
@@ -329,8 +458,10 @@ $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
 
                 $.ajax({
                     type: 'POST',
-                    url: '../Service/DendaService.php?Request=update',
+                    url: 'manage_denda.php',
+                    dataType: 'json',
                     data: {
+                        Request: 'update',
                         id: id,
                         total_denda: total_denda,
                         keterangan: keterangan,

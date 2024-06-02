@@ -1,17 +1,61 @@
 <?php
+session_start();
 require_once '../includes/db_connect.php';
 require_once '../classes/TagihanKamar.php';
 
 $database = new Database();
 $db = $database->dbConnection();
 
-$tagihanKamar = new TagihanKamar($db);
+if(isset($_POST['Request'])){
+    $tagihanKamar = new TagihanKamar($db);
+    // header('Content-Type: application/json');
+    $request = $_POST['Request'];
 
-$stmt = $tagihanKamar->read();
+    switch($request){
+        /**
+         * Generate tagihan
+         * @param id_detail_kamar, bulan, harga_per_bulan
+         */
+        case 'generateTagihan':
+            if(empty($_POST['detail_kamar']) || empty($_POST['bulan']) || empty($_POST['harga_per_bulan'])){
+                echo json_encode([
+                    'success' => false,
+                    'msg' => 'Semua field harus diisi'
+                ]);
+                return;
+            }
+            $bulan = $_POST['bulan'];
+            $date  = date('Y-m-d', strtotime('+7 days'));
+            for($b = 1; $b <= $bulan; $b++){
+                $iniTagihanKamar = new TagihanKamar($db);
+                $iniTagihanKamar->detail_kamar = $_POST['detail_kamar'];
+                $iniTagihanKamar->bulan = $b;
+                $iniTagihanKamar->tanggal_maksimal_bayar = $date;
+                $iniTagihanKamar->harga_tagihan = $_POST['harga_per_bulan'];
+                $iniTagihanKamar->denda_keterlambatan = 0;
+                $iniTagihanKamar->tanggal_bayar = null;
+                $iniTagihanKamar->create();
+                $date = date('Y-m-d', strtotime('+1 month', strtotime($date)));
+
+            }
+            echo json_encode([
+                'success' => true,
+                'msg' => 'Tagihan berhasil dibuat'
+            ]);
+
+            break;
+        default:
+            break;
+    };
+    return;
+}
+
+$tagihanKamar2 = new TagihanKamar($db);
+$stmt = $tagihanKamar2->read();
 ?>
-<script src="https://cdn.tailwindcss.com/3.3.0"></script>
-<link href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css" rel="stylesheet" type="text/css" />
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -20,10 +64,14 @@ $stmt = $tagihanKamar->read();
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Bills</title>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.tailwindcss.com/3.3.0"></script>
+<link href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css" rel="stylesheet" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+
 
 </head>
 
-<body class="bg-gray-100 font-sans m-0 p-0 min-h-svh">
+<body class="bg-gray-100 font-sans m-0 p-0 min-h-screen">
     <header class="bg-gray-800 text-white p-4 border-b-4 border-blue-500">
         <div class="container mx-auto flex justify-between items-center md:w-4/5">
             <div id="branding" class="text-lg font-bold">
@@ -73,6 +121,7 @@ $stmt = $tagihanKamar->read();
                 <?php
                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                         extract($row);
+
                         echo "<tr class='hover:bg-gray-200'>";
                         echo "<td class='py-2 px-2 md:px-4 border border-gray-300'>{$detail_kamar}</td>";
                         echo "<td class='py-2 px-2 md:px-4 border border-gray-300'>{$bulan}</td>";
@@ -82,7 +131,13 @@ $stmt = $tagihanKamar->read();
                         echo "<td class='py-2 px-2 md:px-4 border border-gray-300'>{$tanggal_bayar}</td>";
                         echo "<td class='py-2 px-2 md:px-4 border border-gray-300'>";
 
-                        echo "<button data-id={$id}  class='bg-blue-500 text-white px-2 md:px-3 py-1 rounded hover:bg-blue-700' type='complete'>payment</button> ";
+                        echo "
+                            <form id='paymentForm' method='post' action='payment.php' >
+                            <input type='hidden' name='id' value='{$id}'>
+                            <input type='hidden' name='for' value='kamar'>
+                            <button id='paymentButton' class='bg-blue-500 text-white px-2 md:px-3 py-1 rounded hover:bg-blue-700' type='submit'>Payment</button>
+                            </form>
+                        ";
                         echo "</td>";
                         echo "</tr>";
                     }   
@@ -98,73 +153,6 @@ $stmt = $tagihanKamar->read();
             var navMenu = document.getElementById('nav-menu');
             navMenu.classList.toggle('hidden');
         };
-
-        $(document).ready(function(){
-            $('button[type="complete"]').click(function(event){
-                event.preventDefault();
-                const id_tagihan = $(this).data('id');
-                console.log(id_tagihan)
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Do you want to mark this bill as complete?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, complete it!',
-                    cancelButtonText: 'No, cancel!',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-
-                        $.ajax({
-                            url: '../service/TagihanService.php?Request=complete',
-                            type: 'POST',
-                            data: {
-                                id: id_tagihan
-                            },
-                            success: function(response) {
-                                if(response.success){
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Success',
-                                        text: 'Fine updated successfully',
-                                    }).then((result) => {
-                                        location.reload();
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: 'Failed to update fine',
-                                    });
-                                }
-                            },
-                            error: function(err) {
-                                console.log(err)
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: 'Failed to update fine',
-                                });
-                            }
-                            
-                        
-                        })
-                        
-
-                        // Perform the completion action here
-                        Swal.fire('Completed!', 'The bill has been marked as complete.', 'success');
-                        // You can also submit the form or make an AJAX request to complete the bill
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        Swal.fire('Cancelled', 'The bill is not completed', 'error');
-                    }
-                });
-            });
-
-
-     
-
-        })
     </script>
 
 
