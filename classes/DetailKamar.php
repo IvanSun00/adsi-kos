@@ -104,12 +104,34 @@ class DetailKamar {
         return $stmt;
     }
 
-public function fetchRoomPrice($nomor_kamar) {
-    $stmt = $this->conn->prepare("SELECT harga_kamar FROM kamar WHERE nomor_kamar = :nomor_kamar");
-    $stmt->bindParam(":nomor_kamar", $nomor_kamar);
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $row['harga_kamar'];
-}
+    public function fetchRoomPrice($nomor_kamar) {
+        $stmt = $this->conn->prepare("SELECT harga_kamar FROM kamar WHERE nomor_kamar = :nomor_kamar");
+        $stmt->bindParam(":nomor_kamar", $nomor_kamar);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['harga_kamar'];
+    }
+
+    public function getActivePenghuni() {
+        $query = "SELECT dk.id_penghuni, p.nama_penghuni, dk.tanggal_mulai_sewa, dk.tanggal_selesai_sewa 
+                  FROM " . $this->table_name . " dk
+                  JOIN Penghuni p ON dk.id_penghuni = p.id
+                  WHERE p.status != 'non active' AND dk.tanggal_selesai_sewa > CURDATE()";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    public function getPenghuniDetail($id_penghuni) {
+        $query = "SELECT dk.tanggal_mulai_sewa, dk.tanggal_selesai_sewa 
+                  FROM " . $this->table_name . " dk
+                  WHERE dk.id_penghuni = :id_penghuni";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id_penghuni', $id_penghuni);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 ?>

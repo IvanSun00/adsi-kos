@@ -1,5 +1,5 @@
 <?php
-require_once '../includes/db_connect.php';
+require_once __DIR__ . '/../includes/db_connect.php';
 
 class LahanParkir {
     private $conn;
@@ -63,5 +63,20 @@ class LahanParkir {
         }
         return false;
     }
+    public function readAvailable($startDate, $endDate) {
+        $query = "SELECT lp.nomor_lahan_parkir, lp.harga_lahan_parkir, lp.jenis_lahan_parkir 
+                  FROM " . $this->table_name . " lp
+                  WHERE lp.status = 'active' AND lp.nomor_lahan_parkir NOT IN 
+                  (SELECT nomor_lahan_parkir FROM Log_Parkir WHERE 
+                  (tanggal_masuk BETWEEN :start_date AND :end_date) OR 
+                  (tanggal_keluar BETWEEN :start_date AND :end_date))";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':start_date', $startDate);
+        $stmt->bindParam(':end_date', $endDate);
+        $stmt->execute();
+
+        return $stmt;
+    }
 }
+
 ?>

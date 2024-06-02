@@ -12,11 +12,11 @@ body {
 }
 
 header {
-    background: #333;
+    background: #ff8c00;
     color: #fff;
     padding-top: 30px;
     min-height: 70px;
-    border-bottom: #0779e4 3px solid;
+    border-bottom: #333 3px solid;
 }
 
 header a {
@@ -50,7 +50,7 @@ header nav {
 }
 
 button, input[type="submit"] {
-    background: #0779e4;
+    background: #333;
     color: #fff;
     border: 0;
     padding: 5px 20px;
@@ -60,7 +60,7 @@ button, input[type="submit"] {
 }
 
 button:hover, input[type="submit"]:hover {
-    background: #055bb5;
+    background: #ff8c00;
 }
 
 label {
