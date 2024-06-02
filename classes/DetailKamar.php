@@ -18,21 +18,24 @@ class DetailKamar {
     }
 
     public function create() {
+        $this->total_harga = $this->fetchRoomPrice($this->nomor_kamar) * $this->durasi_kamar;
+    
         $query = "INSERT INTO " . $this->table_name . " (id_penghuni, nomor_kamar, durasi_kamar, tanggal_mulai_sewa, tanggal_selesai_sewa, total_harga) VALUES (:id_penghuni, :nomor_kamar, :durasi_kamar, :tanggal_mulai_sewa, :tanggal_selesai_sewa, :total_harga)";
         $stmt = $this->conn->prepare($query);
-
+    
         $stmt->bindParam(":id_penghuni", $this->id_penghuni);
         $stmt->bindParam(":nomor_kamar", $this->nomor_kamar);
         $stmt->bindParam(":durasi_kamar", $this->durasi_kamar);
         $stmt->bindParam(":tanggal_mulai_sewa", $this->tanggal_mulai_sewa);
         $stmt->bindParam(":tanggal_selesai_sewa", $this->tanggal_selesai_sewa);
         $stmt->bindParam(":total_harga", $this->total_harga);
-
+    
         if ($stmt->execute()) {
             return true;
         }
         return false;
     }
+    
 
     public function read() {
         $query = "SELECT * FROM " . $this->table_name;
@@ -71,5 +74,35 @@ class DetailKamar {
         }
         return false;
     }
+    public function checkRoomStatus($nomor_kamar) {
+        $stmt_status = $this->conn->prepare("SELECT status FROM kamar WHERE nomor_kamar = :nomor_kamar");
+        $stmt_status->bindParam(":nomor_kamar", $nomor_kamar);
+        $stmt_status->execute();
+        $room_status = $stmt_status->fetch(PDO::FETCH_ASSOC);
+        return $room_status;
+    }
+
+    public function checkAvailability($nomor_kamar, $tanggal_mulai_sewa, $tanggal_selesai_sewa) {
+        $stmt_check = $this->conn->prepare("SELECT * FROM detail_kamar WHERE nomor_kamar = :nomor_kamar AND (tanggal_mulai_sewa <= :tanggal_selesai_sewa AND tanggal_selesai_sewa >= :tanggal_mulai_sewa)");
+        $stmt_check->bindParam(":nomor_kamar", $nomor_kamar);
+        $stmt_check->bindParam(":tanggal_mulai_sewa", $tanggal_mulai_sewa);
+        $stmt_check->bindParam(":tanggal_selesai_sewa", $tanggal_selesai_sewa);
+        $stmt_check->execute();
+        return $stmt_check;
+    }
+    public function getRoomDetails($nomor_kamar) {
+        $stmt = $this->conn->prepare("SELECT * FROM detail_kamar WHERE nomor_kamar = :nomor_kamar");
+        $stmt->bindParam(":nomor_kamar", $nomor_kamar);
+        $stmt->execute();
+        return $stmt;
+    }
+
+public function fetchRoomPrice($nomor_kamar) {
+    $stmt = $this->conn->prepare("SELECT harga_kamar FROM kamar WHERE nomor_kamar = :nomor_kamar");
+    $stmt->bindParam(":nomor_kamar", $nomor_kamar);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row['harga_kamar'];
+}
 }
 ?>

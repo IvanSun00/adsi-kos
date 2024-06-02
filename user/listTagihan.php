@@ -74,8 +74,8 @@ $stmt = $tagihanKamar2->read();
 <body class="bg-gray-100 font-sans m-0 p-0 min-h-screen">
     <header class="bg-gray-800 text-white p-4 border-b-4 border-blue-500">
         <div class="container mx-auto flex justify-between items-center md:w-4/5">
-            <div id="branding" class="text-lg font-bold">
-                <h1><a href="#" class="text-white uppercase">Manage Fine</a></h1>
+            <div id="branding" class="text-lg font-bold">   
+                <h1><a href="#" class="text-white uppercase">Manage Bills</a></h1>
             </div>
             <nav class="hidden md:flex space-x-6">
                 <a href="#" class="text-white uppercase">Home</a>

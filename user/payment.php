@@ -184,8 +184,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' ){
                     console.log(id_tagihan)
 
                     Swal.fire({
-                        title: 'Are you sure?',
-                        text: 'Do you want to mark this bill as complete?',
+                        title: 'Apakah Anda yakin ?',
+                        text: 'Total Tagihan Anda sebesar Rp.' +<?php echo ($paymentDetail['harga_tagihan'] + $paymentDetail['denda_keterlambatan'] ) ?> + ',00',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Yes, complete it!',

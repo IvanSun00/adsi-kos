@@ -36,6 +36,19 @@ class Kamar {
 
         return $stmt;
     }
+    
+    public function updateStatus() {
+        $query = "UPDATE " . $this->table_name . " SET status = :status WHERE nomor_kamar = :nomor_kamar";
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(":nomor_kamar", $this->nomor_kamar);
+        $stmt->bindParam(":status", $this->status);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
 
     public function update() {
         $query = "UPDATE " . $this->table_name . " SET harga_kamar = :harga_kamar, jenis_kamar = :jenis_kamar, status = :status WHERE nomor_kamar = :nomor_kamar";
@@ -62,6 +75,14 @@ class Kamar {
             return true;
         }
         return false;
+    }
+    function readSingle($id) {
+        $query = "SELECT * FROM kamar WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+
+        return $stmt;
     }
 }
 ?>
