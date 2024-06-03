@@ -1,8 +1,11 @@
 <?php
     session_start();
+    $_SESSION['username'] = "admin1";
+    $_SESSION['id'] = "1";
     require_once '../includes/db_connect.php';
     require_once '../classes/DendaPelanggaran.php';
     require_once '../classes/Penghuni.php';
+    require_once '../classes/KategoriDenda.php';
 
     $database = new Database();
     $db = $database->dbConnection();
@@ -32,6 +35,7 @@
                 $denda->keterangan = $_POST['keterangan'];
                 $denda->id_admin = $_SESSION['id'] ;
                 $denda->id_penghuni = $_POST['id_penghuni'];
+                $denda->id_kategori_pelanggaran = $_POST['id_kategori_pelanggaran'];
                 if($denda->create()){
                     echo json_encode([
                         "success" => true,
@@ -86,6 +90,7 @@
                 $denda->keterangan = $_POST['keterangan'];
                 $denda->id_admin = $_SESSION['id'] ;
                 $denda->id_penghuni = $_POST['id_penghuni'];
+                $denda->id_kategori_pelanggaran = $_POST['id_kategori_pelanggaran'];
                 if($denda->update()){
                     echo json_encode([
                         "success" => true,
@@ -129,6 +134,9 @@
 <?php
     $penghuni = new Penghuni($db);
     $listPenghuni = $penghuni->read()->fetchAll(PDO::FETCH_ASSOC);
+
+    $kategori_denda = new KategoriDenda($db);
+    $listKategoriDenda = $kategori_denda->read()->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -189,6 +197,7 @@
                         <th class="py-2 px-2 md:px-4 border border-gray-300">No</th>
                         <th class="py-2 px-2 md:px-4 border border-gray-300">Penghuni</th>
                         <th class="py-2 px-2 md:px-4 border border-gray-300">Total Denda</th>
+                        <th class="py-2 px-2 md:px-4 border border-gray-300">Kategori</th>
                         <th class="py-2 px-2 md:px-4 border border-gray-300">Keterangan</th>
                         <th class="py-2 px-2 md:px-4 border border-gray-300">ID Admin</th>
                         <th class="py-2 px-2 md:px-4 border border-gray-300">Actions</th>
@@ -217,14 +226,15 @@
                     </select>
                 </div>
 
-                <!-- <div class="mb-4">
-                    <label for="category" class="block text-sm font-medium text-gray-700">Fine Category</label>
+                <div class="mb-4">
+                    <label for="category" class="block text-sm font-medium text-gray-700">Kategori Denda</label>
                     <select id="category" name="category" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                        <option value="category1">Category 1</option>
-                        <option value="category2">Category 2</option>
-                        <option value="category3">Category 3</option>
+                        <!-- Add options for fine categories here -->
+                        <?php foreach ($listKategoriDenda as $kategori): ?>
+                            <option value="<?php echo $kategori['id']; ?>"><?= $kategori['nama_kategori']; ?> - <?= $kategori['tingkat_keparahan']  ?> </option>
+                        <?php endforeach; ?>
                     </select>
-                </div> -->
+                </div>
 
                 <div class="mb-4">
                     <label for="total_denda" class="block text-sm font-medium text-gray-700">Total Fine</label>
@@ -263,6 +273,7 @@
                 var id_penghuni = $('#penghuni').val();
                 var total_denda = $('#total_denda').val();
                 var keterangan = $('#keterangan').val();
+                var id_kategori_pelanggaran = $('#category').val();
 
                 $.ajax({
                     type: 'POST',
@@ -272,7 +283,8 @@
                         Request: 'add',
                         id_penghuni: id_penghuni,
                         total_denda: total_denda,
-                        keterangan: keterangan
+                        keterangan: keterangan,
+                        id_kategori_pelanggaran: id_kategori_pelanggaran
                     },
                     success: function(response) {
                         console.log(response);
@@ -304,6 +316,8 @@
                 });
                 
             });
+
+            //read
             function getAllData(){
                  // get all denda
                 $.ajax({
@@ -322,6 +336,7 @@
                                         <td class="py-2 px-2 md:px-4 border border-gray-300">${i}</td>
                                         <td class="py-2 px-2 md:px-4 border border-gray-300">${denda.nama_penghuni}</td>
                                         <td class="py-2 px-2 md:px-4 border border-gray-300">${denda.total_denda}</td>
+                                        <td class="py-2 px-2 md:px-4 border border-gray-300">${denda.nama_kategori}</td>
                                         <td class="py-2 px-2 md:px-4 border border-gray-300">${denda.keterangan}</td>
                                         <td class="py-2 px-2 md:px-4 border border-gray-300">${denda.nama_admin}</td>
                                         <td class="py-2 px-2 md:px-4 border border-gray-300">
@@ -341,57 +356,6 @@
             }
             getAllData();
 
-            function getById(id){
-                $.ajax({
-                    type: 'POST',
-                    url: 'manage_denda.php',
-                    dataType: 'json',
-                    data: {
-                        Request: 'getById',
-                        id: id
-                    },
-                    success: function(response) {
-                        console.log(response);
-                        if(response.success){
-                            let denda = response.data;
-                            $('#editModal').html(`
-                            <dialog id="my_modal_4" class="modal">
-                                <div class="modal-box">
-                                    <form method="dialog" class="p-4" id="addForm" >
-                                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" data-close>✕</button>
-                                        
-                                        <div class="mb-4">
-                                            <label for="penghuni" class="block text-sm font-medium text-gray-700">Select User</label>
-                                            <input value="${denda.nama_penghuni}" type="text" name="penghuni" id="edit_penghuni" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-gray-200 cursor-not-allowed" readonly>            
-                                        </div>
-
-
-                                        <div class="mb-4">
-                                            <label for="total_denda" class="block text-sm font-medium text-gray-700">Total Fine</label>
-                                            <input value=${denda.total_denda} type="text" id="edit_total_denda" name="total_denda" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                        </div>
-
-                                        <div class="mb-4">
-                                            <label for="keterangan" class="block text-sm font-medium text-gray-700">Description</label>
-                                            <textarea id="edit_keterangan" name="keterangan" rows="3" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">${denda.keterangan} </textarea>
-                                        </div>
-                                        <div class="flex justify-end">
-                                            <button data-id=${denda.id} id="edit_denda" type="submit" class="btn btn-primary">Save</button>
-                                        </div>
-                                        <input value=${denda.id_penghuni} type="hidden" id="id_penghuni" name="total_denda" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                        
-                                    </form>
-                                </div>
-                            </dialog>
-                            `);
-                            my_modal_4.showModal();
-                        }
-                    },
-                    error: function(response) {
-                        console.log(response);
-                    }
-                });
-            }
 
             //delete denda
             $(document).on('click', '.btn-delete', function(){
@@ -443,7 +407,67 @@
                 });
             });
 
-            //edit denda
+
+             //edit denda
+            function getById(id){
+                $.ajax({
+                    type: 'POST',
+                    url: 'manage_denda.php',
+                    dataType: 'json',
+                    data: {
+                        Request: 'getById',
+                        id: id
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        if(response.success){
+                            let denda = response.data;
+                            $('#editModal').html(`
+                            <dialog id="my_modal_4" class="modal">
+                                <div class="modal-box">
+                                    <form method="dialog" class="p-4" id="addForm" >
+                                        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" data-close>✕</button>
+                                        
+                                        <div class="mb-4">
+                                            <label for="penghuni" class="block text-sm font-medium text-gray-700">Select User</label>
+                                            <input value="${denda.nama_penghuni}" type="text" name="penghuni" id="edit_penghuni" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-gray-200 cursor-not-allowed" readonly>            
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label for="category" class="block text-sm font-medium text-gray-700">Kategori Denda</label>
+                                            <input value="${denda.nama_kategori}" type="text" name="category" id="edit_category" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-gray-200 cursor-not-allowed" readonly>
+                                        </div>
+
+
+                                        <div class="mb-4">
+                                            <label for="total_denda" class="block text-sm font-medium text-gray-700">Total Fine</label>
+                                            <input value=${denda.total_denda} type="text" id="edit_total_denda" name="total_denda" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label for="keterangan" class="block text-sm font-medium text-gray-700">Description</label>
+                                            <textarea id="edit_keterangan" name="keterangan" rows="3" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">${denda.keterangan} </textarea>
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <button data-id=${denda.id} id="edit_denda" type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                        <input value=${denda.id_penghuni} type="hidden" id="id_penghuni" name="total_denda" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <input value=${denda.id_kategori_pelanggaran} type="hidden" id="id_kategori_pelanggaran" name="kategori" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+
+                                        
+                                    </form>
+                                </div>
+                            </dialog>
+                            `);
+                            my_modal_4.showModal();
+                        }
+                    },
+                    error: function(response) {
+                        console.log(response);
+                    }
+                });
+            }
+
             $(document).on('click', '.btn-edit', function(){
                 var id = $(this).data('id');
                 getById(id);
@@ -456,6 +480,8 @@
                 var total_denda = $('#edit_total_denda').val();
                 var keterangan = $('#edit_keterangan').val();
                 var id_penghuni = $('#id_penghuni').val();
+                var id_kategori_pelanggaran = $('#id_kategori_pelanggaran').val();
+
 
                 $.ajax({
                     type: 'POST',
@@ -466,7 +492,8 @@
                         id: id,
                         total_denda: total_denda,
                         keterangan: keterangan,
-                        id_penghuni: id_penghuni
+                        id_penghuni: id_penghuni,
+                        id_kategori_pelanggaran: id_kategori_pelanggaran
                         
                     },
                     success: function(response) {
@@ -498,10 +525,6 @@
                     }
                 });
             });
-
-
-
-
 
         });
     </script>

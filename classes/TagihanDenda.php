@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/db_connect.php';
-
-class TagihanDenda {
+require_once 'Tagihan.php';
+class TagihanDenda extends Tagihan{
     private $conn;
     private $table_name = "Tagihan_Denda";
 
@@ -71,5 +71,7 @@ class TagihanDenda {
         }
         return false;
     }
+
+    
 }
 ?>

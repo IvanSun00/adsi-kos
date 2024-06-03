@@ -22,7 +22,6 @@ abstract class Tagihan {
     abstract public function update();
     abstract public function delete();
 
-    abstract public function getDetailPayment();
 
 }
 ?>
