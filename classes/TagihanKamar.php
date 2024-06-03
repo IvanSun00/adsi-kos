@@ -155,5 +155,15 @@ class TagihanKamar extends Tagihan {
 
         }
     }
+
+    public function getListTagihan($id_detail_kamar){
+        $list = implode(",", $id_detail_kamar);
+
+        $query = "SELECT * FROM " . $this->table_name . " WHERE detail_kamar in ($list)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        return $stmt;
+    }
 }
 ?>

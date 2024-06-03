@@ -133,5 +133,14 @@ class DetailKamar {
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getIdDetailKamar($id_penghuni){
+        $query = "SELECT id FROM " . $this->table_name . " WHERE id_penghuni = :id_penghuni";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id_penghuni', $id_penghuni);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }
 ?>

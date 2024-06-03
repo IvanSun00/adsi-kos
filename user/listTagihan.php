@@ -1,14 +1,19 @@
 <?php
 session_start();
+$_SESSION['id_penghuni'] = 1;
 require_once '../includes/db_connect.php';
 require_once '../classes/TagihanKamar.php';
+require_once '../classes/DetailKamar.php';
 
 $database = new Database();
 $db = $database->dbConnection();
 
+$detail_kamar = new DetailKamar($db);
+$list = $detail_kamar->getIdDetailKamar($_SESSION['id_penghuni']);
 
 $tagihanKamar2 = new TagihanKamar($db);
-$stmt = $tagihanKamar2->read();
+$stmt = $tagihanKamar2->getListTagihan($list);
+
 ?>
 
 
